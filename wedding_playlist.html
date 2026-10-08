@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Playlist - Mai Lisa & Susu</title>
+    <!-- Google Fonts cho kiểu chữ handwriting / cute chuẩn mẫu -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Pacifico&family=Quicksand:wght@500;600;700&family=Sniglet:wght@800&display=swap" rel="stylesheet">
+    <!-- FontAwesome cho icon điều khiển nhạc -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fca89d;
+            background-image: radial-gradient(#fdbeba 1px, transparent 0);
+            background-size: 24px 24px;
+            color: #ffffff;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* Phông chữ giống tiêu đề Wedding Playlist trong ảnh mẫu */
+        .font-wedding {
+            font-family: 'Sniglet', 'Fredoka', cursive;
+        }
+
+        .font-handwriting {
+            font-family: 'Pacifico', cursive;
+        }
+
+        /* Tùy chỉnh thanh slider kéo nhạc */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.4);
+            height: 5px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
+
+        /* Animation Sóng Nhạc giả lập */
+        .wave-bar {
+            width: 3px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 3px;
+            display: inline-block;
+            margin: 0 1.5px;
+            transition: height 0.2s ease;
+        }
+
+        .playing .wave-bar {
+            animation: wave 1.2s ease-in-out infinite alternate;
+        }
+
+        .playing .wave-bar:nth-child(1) { animation-delay: 0.1s; }
+        .playing .wave-bar:nth-child(2) { animation-delay: 0.3s; }
+        .playing .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .playing .wave-bar:nth-child(4) { animation-delay: 0.4s; }
+        .playing .wave-bar:nth-child(5) { animation-delay: 0.15s; }
+
+        @keyframes wave {
+            0% { height: 4px; }
+            100% { height: 22px; }
+        }
+
+        /* Bắt chước nút bấm dạng nét vẽ nhẹ nhàng màu trắng */
+        .ctrl-btn {
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.2s ease;
+        }
+        .ctrl-btn:hover {
+            color: #ffffff;
+            transform: scale(1.15);
+        }
+        .ctrl-btn.active {
+            color: #fff;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+        }
+
+        /* Khung chứa hình ảnh cô dâu chú rể với viền cong mượt */
+        .artwork-container {
+            box-shadow: 0 15px 35px rgba(210, 80, 70, 0.25);
+        }
+
+        /* Custom Scrollbar cho danh sách phát */
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4 md:p-8">
+
+    <div class="w-full max-w-5xl bg-[#fba298] rounded-3xl p-6 md:p-12 shadow-2xl relative overflow-hidden border-4 border-white/30">
+
+        <!-- Nút bật tắt Menu Danh Sách Phát góc trên phải -->
+        <button id="toggle-playlist" class="absolute top-6 right-6 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition flex items-center gap-2 backdrop-blur-sm z-20 shadow-md">
+            <i class="fas fa-list-ul text-lg"></i>
+            <span class="text-sm font-bold hidden sm:inline">Danh Sách Phát</span>
+        </button>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+            <!-- BÊN TRÁI: KHUNG ẢNH CÔ DÂU CHÚ RỂ (40% - 5 COLS) -->
+            <div class="lg:col-span-5 flex justify-center">
+                <div class="artwork-container relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-2xl bg-white p-4 sm:p-5 flex items-center justify-center border-2 border-white/60">
+                    <div class="w-full h-full rounded-xl overflow-hidden relative bg-rose-50 flex items-center justify-center">
+                        <img id="album-art" src="anhdamcuoi.png" onerror="this.src='https://placehold.co/400x400/ffe4e6/be123c?text=Anh+Dam+Cuoi'" alt="Ảnh Đám Cưới" class="w-full h-full object-cover rounded-lg transform transition duration-700 hover:scale-105">
+                    </div>
+                </div>
+            </div>
+
+            <!-- BÊN PHẢI: TRÌNH PHÁT NHẠC WEDDING PLAYLIST (60% - 7 COLS) -->
+            <div class="lg:col-span-7 flex flex-col items-center justify-center text-center px-2 sm:px-6">
+
+                <!-- Tiêu đề "Wedding Playlist" nổi bật kiểu handwriting -->
+                <div class="mb-4">
+                    <h1 class="font-wedding text-5xl sm:text-6xl md:text-7xl text-white tracking-wide drop-shadow-md leading-tight">
+                        Wedding
+                    </h1>
+                    <h2 class="font-wedding text-4xl sm:text-5xl md:text-6xl text-white/95 tracking-wide drop-shadow-sm -mt-2 sm:-mt-4">
+                        Playlist
+                    </h2>
+                </div>
+
+                <!-- Sóng nhạc nhảy theo điệu nhạc -->
+                <div class="flex items-center justify-center gap-1 my-2 h-6" id="wave-container">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+
+                <!-- Tên bài hát & Ca sĩ -->
+                <div class="mb-6 w-full px-4">
+                    <p id="song-title" class="text-xl sm:text-2xl font-bold text-white tracking-wide truncate drop-shadow-sm">
+                        một đời
+                    </p>
+                    <p id="artist-name" class="text-sm sm:text-base text-white/80 font-medium mt-1 truncate">
+                        14 Casper & Bon Nghiêm (feat. buitruonglinh)
+                    </p>
+                </div>
+
+                <!-- Thanh thời gian chạy nhạc (Progress Bar) chuẩn giao diện mẫu -->
+                <div class="w-full max-w-md px-2 mb-6">
+                    <input type="range" id="progress-bar" value="0" min="0" max="100" class="w-full cursor-pointer accent-white">
+                    <div class="flex justify-between text-xs text-white/80 font-semibold mt-1 px-1">
+                        <span id="current-time">0:00</span>
+                        <span id="duration-time">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Thẻ audio HTML5 ẩn dùng để phát 5 bài nhạc -->
+                <audio id="audio-player"></audio>
+
+                <!-- Cụm nút bấm điều khiển nhạc (Shuffle, Prev, Play/Pause, Next, Repeat) -->
+                <div class="flex items-center justify-center gap-6 sm:gap-8 w-full max-w-sm">
+                    <!-- Nút Ngẫu Nhiên (Shuffle) -->
+                    <button id="shuffle-btn" class="ctrl-btn text-lg sm:text-xl" title="Phát ngẫu nhiên">
+                        <i class="fas fa-random"></i>
+                    </button>
+
+                    <!-- Nút Bài Trước (Prev) -->
+                    <button id="prev-btn" class="ctrl-btn text-2xl sm:text-3xl" title="Bài trước">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+
+                    <!-- Nút Play / Pause -->
+                    <button id="play-btn" class="ctrl-btn text-4xl sm:text-5xl text-white transform hover:scale-110 active:scale-95 transition" title="Phát / Tạm dừng">
+                        <i class="fas fa-play" id="play-icon"></i>
+                    </button>
+
+                    <!-- Nút Bài Tiếp theo (Next) -->
+                    <button id="next-btn" class="ctrl-btn text-2xl sm:text-3xl" title="Bài kế tiếp">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+
+                    <!-- Nút Lặp lại (Repeat) -->
+                    <button id="repeat-btn" class="ctrl-btn text-lg sm:text-xl" title="Lặp lại bài hát">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DANH SÁCH PHÁT (PLAYLIST DRAWER) - Hiện lên khi ấn nút Danh sách phát -->
+        <div id="playlist-drawer" class="absolute inset-y-0 right-0 w-full sm:w-80 bg-rose-900/90 backdrop-blur-md text-white p-6 transform translate-x-full transition-transform duration-300 ease-in-out z-30 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/20">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fas fa-music text-rose-300"></i> Danh Sách Nhạc
+                    </h3>
+                    <button id="close-playlist" class="text-white/70 hover:text-white p-2">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Danh sách 5 bài hát -->
+                <div id="playlist-items" class="space-y-2 max-h-[380px] overflow-y-auto custom-scroll pr-1">
+                    <!-- Các dòng bài hát sẽ được render bằng JS -->
+                </div>
+            </div>
+
+            <div class="text-center text-xs text-white/60 pt-4 border-t border-white/10">
+                Wedding Playlist • Mai Lisa & Susu
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Danh sách 5 bài hát sử dụng file mp3 của bạn
+        const playlist = [
+            {
+                file: 'baihat1.mp3',
+                title: 'Một Đời',
+                artist: '14 Casper & Bon Nghiêm (feat. buitruonglinh)'
+            },
+            {
+                file: 'baihat2.mp3',
+                title: 'Cưới Nhau Đi (Yes I Do)',
+                artist: 'Bùi Anh Tuấn x Hiền Hồ'
+            },
+            {
+                file: 'baihat3.mp3',
+                title: 'Một Nhà',
+                artist: 'Da LAB'
+            },
+            {
+                file: 'baihat4.mp3',
+                title: 'Coi Cọc Cạc',
+                artist: 'Coi Cóc Cán'
+            },
+            {
+                file: 'baihat5.mp3',
+                title: 'Ngày Đầu Tiên',
+                artist: 'Đức Phúc'
+            }
+        ];
+
+        // Khai báo các Element HTML
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const repeatBtn = document.getElementById('repeat-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationTimeEl = document.getElementById('duration-time');
+        const songTitle = document.getElementById('song-title');
+        const artistName = document.getElementById('artist-name');
+        const waveContainer = document.getElementById('wave-container');
+        const togglePlaylistBtn = document.getElementById('toggle-playlist');
+        const closePlaylistBtn = document.getElementById('close-playlist');
+        const playlistDrawer = document.getElementById('playlist-drawer');
+        const playlistItems = document.getElementById('playlist-items');
+
+        // Khởi tạo các trạng thái
+        let currentIndex = 0;
+        let isPlaying = false;
+        let isShuffle = false;
+        let isRepeat = false;
+
+        // Khởi chạy ban đầu
+        function initPlayer() {
+            loadSong(currentIndex);
+            renderPlaylist();
+        }
+
+        // Load bài hát
+        function loadSong(index) {
+            const song = playlist[index];
+            songTitle.innerText = song.title;
+            artistName.innerText = song.artist;
+            audio.src = song.file;
+            updateActivePlaylistItem();
+        }
+
+        // Phát nhạc
+        function playSong() {
+            isPlaying = true;
+            playIcon.classList.remove('fa-play');
+            playIcon.classList.add('fa-pause');
+            waveContainer.classList.add('playing');
+            audio.play().catch(e => console.log('Chờ tương tác người dùng:', e));
+        }
+
+        // Dừng nhạc
+        function pauseSong() {
+            isPlaying = false;
+            playIcon.classList.remove('fa-pause');
+            playIcon.classList.add('fa-play');
+            waveContainer.classList.remove('playing');
+            audio.pause();
+        }
+
+        // Chuyển sang bài trước
+        function prevSong() {
+            if (isShuffle) {
+                playRandomSong();
+            } else {
+                currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+                loadSong(currentIndex);
+                playSong();
+            }
+        }
+
+        // Chuyển sang bài kế tiếp
+        function nextSong() {
+            if (isShuffle) {
+                playRandomSong();
+            } else {
+                currentIndex = (currentIndex + 1) % playlist.length;
+                loadSong(currentIndex);
+                playSong();
+            }
+        }
+
+        // Phát ngẫu nhiên bài hát khác bài hiện tại
+        function playRandomSong() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * playlist.length);
+            } while (newIndex === currentIndex && playlist.length > 1);
+            
+            currentIndex = newIndex;
+            loadSong(currentIndex);
+            playSong();
+        }
+
+        // Cập nhật tiến trình thời gian
+        function updateProgress() {
+            if (audio.duration) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                progressBar.value = percent;
+                
+                // Hiển thị phút:giây
+                currentTimeEl.innerText = formatTime(audio.currentTime);
+                durationTimeEl.innerText = formatTime(audio.duration);
+            }
+        }
+
+        // Định dạng thời gian dạng m:ss
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        // Tua bài hát khi kéo slider
+        function setProgress() {
+            if (audio.duration) {
+                audio.currentTime = (progressBar.value / 100) * audio.duration;
+            }
+        }
+
+        // Render Danh Sách Bài Hát trong Drawer
+        function renderPlaylist() {
+            playlistItems.innerHTML = '';
+            playlist.forEach((song, index) => {
+                const item = document.createElement('div');
+                item.className = `playlist-item p-3 rounded-xl cursor-pointer flex items-center justify-between transition ${index === currentIndex ? 'bg-white/30 font-bold' : 'hover:bg-white/10'}`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 truncate">
+                        <span class="text-xs opacity-75">${index + 1}</span>
+                        <div class="truncate">
+                            <p class="text-sm truncate">${song.title}</p>
+                            <p class="text-xs opacity-70 truncate">${song.artist}</p>
+                        </div>
+                    </div>
+                    ${index === currentIndex ? '<i class="fas fa-volume-high text-xs text-rose-200"></i>' : ''}
+                `;
+                item.addEventListener('click', () => {
+                    currentIndex = index;
+                    loadSong(currentIndex);
+                    playSong();
+                });
+                playlistItems.appendChild(item);
+            });
+        }
+
+        // Cập nhật highlight item đang phát trong danh sách
+        function updateActivePlaylistItem() {
+            renderPlaylist();
+        }
+
+        // EVENT LISTENERS
+
+        // Nút Play / Pause
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                pauseSong();
+            } else {
+                playSong();
+            }
+        });
+
+        // Nút Bài trước / Bài kế
+        prevBtn.addEventListener('click', prevSong);
+        nextBtn.addEventListener('click', nextSong);
+
+        // Nút Ngẫu nhiên (Shuffle)
+        shuffleBtn.addEventListener('click', () => {
+            isShuffle = !isShuffle;
+            shuffleBtn.classList.toggle('active', isShuffle);
+        });
+
+        // Nút Lặp lại (Repeat)
+        repeatBtn.addEventListener('click', () => {
+            isRepeat = !isRepeat;
+            repeatBtn.classList.toggle('active', isRepeat);
+        });
+
+        // Cập nhật thanh tiến trình theo thời gian phát
+        audio.addEventListener('timeupdate', updateProgress);
+
+        // Tua bài khi kéo slider
+        progressBar.addEventListener('input', setProgress);
+
+        // Xử lý khi kết thúc bài hát
+        audio.addEventListener('ended', () => {
+            if (isRepeat) {
+                audio.currentTime = 0;
+                playSong();
+            } else {
+                nextSong();
+            }
+        });
+
+        // Mở/đóng Drawer Playlist
+        togglePlaylistBtn.addEventListener('click', () => {
+            playlistDrawer.classList.remove('translate-x-full');
+        });
+
+        closePlaylistBtn.addEventListener('click', () => {
+            playlistDrawer.classList.add('translate-x-full');
+        });
+
+        // Khởi động trình phát nhạc khi tải xong trang
+        window.addEventListener('load', initPlayer);
+    </script>
+</body>
+</html>
